@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+    }
+    stages {
+        stage('Build Maven') {
+            steps {
+                // ✅ simpler git checkout
+                git branch: 'main', url: 'https://github.com/Rifaz15072000/devops-automation'
+                
+                sh 'mvn clean install'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t rifaz15072000/devops-integration .'
+                }
+            }
+        }
+        stage('Push to docker hub') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'dockerpwd', variable: 'dockerhubpwd')]) {
+                    sh 'docker login -u rifaz15072000 -p ${dockerhubpwd}'    
+                    }
+                    sh 'docker push rifaz15072000/devops-integration'
+                }
+            }
+        }
+    }
+}
